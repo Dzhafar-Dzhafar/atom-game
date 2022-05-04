@@ -10,19 +10,22 @@ win = pygame.display.set_mode((500, 500))
 pygame.display.set_caption("New game")
 '''Наименование окна игры'''
 x=230
-y=470
+y=460
 '''Расположение объекта по координатам'''
 widht = 30
 '''Добавляем ширину'''
 height = 30
 '''Добавляем высоту'''
 speed = 5
+'''Добавляем прыжки'''
+isJump = False #Прыгает сейчас объект или нет
+jumpCount = 10
 
 '''Создаём игровой цикл true -> false -> exit'''
 run = True
 while run:
-    pygame.time.delay(100)
-    '''Временной шаг хода цикла в миллисекундах, в данном случае 0,1 секунды'''
+    pygame.time.delay(30)
+    '''Временной шаг хода цикла в миллисекундах'''
 
     '''Теперь мы будем отслеживать события'''
     for event in pygame.event.get():
@@ -38,13 +41,29 @@ while run:
         x += speed
     '''Для правого зажима ->'''
 
-    if keys[pygame.K_UP] and y > 5:
-        y -= speed
-    '''Для зажима вверх'''
+    if not(isJump):
+        if keys[pygame.K_UP] and y > 5:
+            y -= speed
+        '''Для зажима вверх'''
 
-    if keys[pygame.K_DOWN] and y < 495 - height:
-        y += speed
-    '''Для зажима вниз'''
+        if keys[pygame.K_DOWN] and y < 495 - height:
+            y += speed
+        '''Для зажима вниз'''
+
+        if keys[pygame.K_SPACE]:
+            isJump = True
+        '''Проверка нажатия пробела'''
+    else:
+        if jumpCount >= -10: #Начали прыжок
+            if jumpCount < 0:
+                y += (jumpCount ** 2) / 2 #граница до падения и падение
+            else:
+                y -= (jumpCount ** 2) / 2 #шаг прыжка
+            jumpCount -=1 #цикл падения
+        else:
+            isJump = False #Закончили прыжок
+            jumpCount = 10
+        '''Строим параболу'''
 
     '''Осуществляем удаление следа объекта'''
     win.fill((0, 0, 0))
