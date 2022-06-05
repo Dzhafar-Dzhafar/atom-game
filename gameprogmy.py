@@ -6,7 +6,7 @@ import pygame
 
 pygame.init()
 win = pygame.display.set_mode((608, 492))
-'''Рзрешение окна 500 на 500'''
+'''Рзрешение окна 608 на 492'''
 pygame.display.set_caption("New game")
 '''Наименование окна игры'''
 
@@ -26,7 +26,7 @@ BF = pygame.image.load(r'C:\Users\nag_b\Desktop\atom-game\sprites\pixil-black.jp
 
 clock = pygame.time.Clock()
 
-x=230
+x=300
 y=460
 '''Расположение объекта по координатам'''
 widht = 31
@@ -41,6 +41,18 @@ jumpCount = 10
 left = False
 right = False
 animCaunt = 0
+lastMove = 'right' #Изначально двигался на право
+class projectile ():
+    def __init__(self, x, y, radius, color, facing):
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.color = color
+        self.facing = facing
+        self.vel = 8 * facing
+#Рисуем снаряд
+    def draw(self, win):
+        pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
 
 def drawWindow():
     global animCaunt
@@ -56,12 +68,15 @@ def drawWindow():
         win.blit(walkLeft[animCaunt // 5], (x, y))
         animCaunt += 1
     elif right:
-        win.blit(walkLeft[animCaunt // 5], (x, y))
+        win.blit(walkRight[animCaunt // 5], (x, y))
         animCaunt += 1
         '''Деление на 5 и округление до меньшего'''
         '''Если объект не двигается ни влево, ни вправо то: '''
     else:
         win.blit(playerStand, (x, y))
+
+    for bullet in bullets:
+        bullet.draw(win)
 
     #pygame.draw.rect(win, (0,255,0), (x, y, widht, height))
     '''win поверхность на которой будем рисовать наш объект'''
@@ -73,6 +88,7 @@ def drawWindow():
 
 '''Создаём игровой цикл true -> false -> exit'''
 run = True
+bullets = []
 while run:
     clock.tick(30)
     '''Временной шаг хода цикла в миллисекундах'''
@@ -81,17 +97,37 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+
+    for bullet in bullets:
+        if bullet.x < 600 and bullet.x > 0:
+            bullet.x += bullet.vel
+        else:
+            bullets.pop(bullets.index(bullet)) #Удаляем из списка bullets определённый снаряд
+
     '''Добавим учёт зажима кнопки с помощью списка кнопок'''
     keys = pygame.key.get_pressed()
+
+    #Создаём кнопку снаряда
+    if keys[pygame.K_f]:
+        #Отслеживаем поворот персонажа для корректировки стороны полёта снаряда
+        if lastMove == 'right':
+            facing = 1
+        else:
+            facing = -1
+        if len(bullets) < 5:
+            bullets.append(projectile(round(x + widht // 2), (y + height // 2), 5, (255, 0, 0), facing)) #Снаряд выпускается по центру игрока + параметры
+
     if keys[pygame.K_LEFT] and x > 5:
         x -= speed
         left = True
         right = False
+        lastMove = 'left'
         '''Для левого зажима <-'''
-    elif keys[pygame.K_RIGHT] and x < 495 - widht:
+    elif keys[pygame.K_RIGHT] and x < 600 - widht:
         x += speed
         left = False
         right = True
+        lastMove = 'right'
         '''Для правого зажима ->'''
     else:
         left = False
